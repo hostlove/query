@@ -21,13 +21,22 @@
     const words = ['Agent', 'LangGraph', 'LangChain', 'RAG', 'GraphRAG', 'Prompt', 'Harness', 'MCP', 'ReAct', 'Trace', 'Memory', 'Checkpoint', 'SSE', 'WebSocket', 'BM25', 'RRF', 'Redis', 'vLLM', 'Function Call'];
     return words.filter(w => question.toLowerCase().includes(w.toLowerCase())).slice(0, 4);
   }
+  function encodeMetadata(card) {
+    const data = { id: card.id, category: card.category, section: card.section, sourceNumber: card.sourceNumber, tags: card.tags, origin: card.origin };
+    return encodeURIComponent(JSON.stringify(data)).replace(/[!'()*-]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+  }
   function parseMarkdown(markdown) {
     let section = '自定义题库', current = null; const cards = [], warnings = [];
     const finish = () => {
       if (!current) return;
       const body = current.lines.join('\n').trim();
-      const noteLines = [], answerLines = []; let foundAnswer = false;
+      const noteLines = [], answerLines = []; let foundAnswer = false, metadata = {};
       for (const line of body.split('\n')) {
+        const meta = line.match(/^\s*<!--\s*qv-meta:(.+?)\s*-->\s*$/);
+        if (meta) {
+          try { const parsed = JSON.parse(decodeURIComponent(meta[1])); if (parsed && typeof parsed === 'object') metadata = parsed; } catch { /* Ignore malformed optional metadata. */ }
+          continue;
+        }
         if (/^\s*>/.test(line)) { noteLines.push(line.replace(/^\s*>\s?/, '').replace(/^备考备注[（(]不口述[）)][:：]\s*/, '')); continue; }
         if (/^\s*(?:\*\*)?(?:回答|答案|答)[:：](?:\*\*)?/.test(line)) {
           foundAnswer = true;
@@ -36,9 +45,12 @@
       }
       const answer = answerLines.join('\n').trim();
       if (!answer) { warnings.push(`“${current.question}”缺少回答，已跳过。`); return; }
-      cards.push({ id: 'q-' + hash(normalize(current.question)), question: current.question, answer,
-        notes: noteLines.join('\n').trim(), category: /^第[一二三四五六七八九十\d]+部分/.test(section) || section === '自定义题库' ? categoryFor(current.question) : section,
-        section, sourceNumber: current.sourceNumber, tags: tagsFor(current.question), origin: 'markdown' });
+      const fallbackCategory = /^第[一二三四五六七八九十\d]+部分/.test(section) || section === '自定义题库' ? categoryFor(current.question) : section;
+      cards.push({ id: typeof metadata.id === 'string' ? metadata.id : 'q-' + hash(normalize(current.question)), question: current.question, answer,
+        notes: noteLines.join('\n').trim(), category: typeof metadata.category === 'string' ? metadata.category : fallbackCategory,
+        section: typeof metadata.section === 'string' ? metadata.section : section,
+        sourceNumber: Object.hasOwn(metadata, 'sourceNumber') ? String(metadata.sourceNumber || '') : current.sourceNumber,
+        tags: Array.isArray(metadata.tags) ? metadata.tags : tagsFor(current.question), origin: typeof metadata.origin === 'string' ? metadata.origin : 'markdown' });
     };
     for (const line of String(markdown).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n')) {
       const sec = line.match(/^##\s+(.+)$/);
@@ -121,8 +133,14 @@
     return cards.reduce((s, c) => { const p = progress[c.id] || {}; s.total++; if (p.starred) s.starred++; if (p.status === 'mastered') s.mastered++; if (p.status === 'review') s.review++; if (p.reviewedAt && localDay(new Date(p.reviewedAt)) === today) s.today++; return s; }, { total: 0, mastered: 0, review: 0, starred: 0, today: 0 });
   }
   function exportMarkdown(cards) {
-    const groups = new Map(); for (const c of cards) { if (!groups.has(c.category)) groups.set(c.category, []); groups.get(c.category).push(c); }
-    return '# QV 面试题库\n\n' + [...groups].map(([cat, list]) => `## ${cat}\n\n` + list.map((c, i) => `### ${i + 1}. ${c.question}\n\n**回答：**${c.answer}\n` + (c.notes ? `\n${c.notes.split('\n').map((l, j) => '> ' + (j === 0 ? '备考备注（不口述）：' : '') + l).join('\n')}\n` : '')).join('\n')).join('\n');
+    const list = validateCards(cards), parts = ['# QV 面试题库']; let category = null;
+    list.forEach((c, i) => {
+      if (c.category !== category) { category = c.category; parts.push(`## ${category}`); }
+      const number = c.sourceNumber || String(i + 1);
+      const notes = c.notes ? `\n\n${c.notes.split('\n').map((line, index) => '> ' + (index === 0 ? '备考备注（不口述）：' : '') + line).join('\n')}` : '';
+      parts.push(`### ${number}. ${c.question}\n\n<!-- qv-meta:${encodeMetadata(c)} -->\n\n**回答：**${c.answer}${notes}`);
+    });
+    return parts.join('\n\n') + '\n';
   }
   return { CATEGORIES, STATUS, normalize, hash, categoryFor, tagsFor, parseMarkdown, validateCards, cleanProgress, parseImport, mergeCards, filterCards, shuffle, localDay, stats, exportMarkdown };
 });

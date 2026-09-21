@@ -2,7 +2,7 @@
 window.QV_SEED = {
   "version": 1,
   "source": "QV admin publish",
-  "generatedAt": "2026-09-21T10:51:41.553Z",
+  "generatedAt": "2026-09-21T11:19:43.632Z",
   "cards": [
     {
       "id": "q-1cmrmtr",
@@ -829,8 +829,8 @@ window.QV_SEED = {
     },
     {
       "id": "custom-mub4kkrj-6v2tg",
-      "question": "这是一个测试案例",
-      "answer": "测试内容使用",
+      "question": "这是一个测试案例222",
+      "answer": "测试内容使用222",
       "notes": "",
       "category": "Agent 与工具",
       "section": "我的新增问题",

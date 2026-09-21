@@ -243,7 +243,13 @@
     if (queue && selected) queue.scrollTop = Math.max(0, selected.getBoundingClientRect().top - queue.getBoundingClientRect().top - 100);
   }
 
-  function navigate(id) {
+  function scrollToCardOnMobile() {
+    if (!window.matchMedia('(max-width: 760px)').matches) return;
+    document.activeElement?.blur?.();
+    requestAnimationFrame(() => document.querySelector('.flashcard')?.scrollIntoView({ behavior: 'auto', block: 'start' }));
+  }
+
+  function navigate(id, scrollMobile = true) {
     if (!id) return;
     flushNote();
     resetTimer();
@@ -252,6 +258,7 @@
     state.lastId = id;
     save();
     render();
+    if (scrollMobile) scrollToCardOnMobile();
   }
 
   function step(amount) {
@@ -389,7 +396,7 @@
       case 'jump': navigate(id); break;
       case 'practice':
         ui.view = 'study';
-        navigate(id);
+        navigate(id, false);
         $('workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
         break;
       case 'timer': toggleTimer(); break;

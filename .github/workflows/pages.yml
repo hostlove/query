@@ -3,6 +3,9 @@ name: Deploy QV public site
 on:
   push:
     branches: [main, master]
+    paths:
+      - "QV/public/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -30,7 +33,7 @@ jobs:
       - name: Upload read-only site
         uses: actions/upload-pages-artifact@v5
         with:
-          path: ./public
+          path: ./QV/public
 
       - name: Deploy to GitHub Pages
         id: deployment

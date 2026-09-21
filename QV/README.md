@@ -68,22 +68,65 @@ npm.cmd run build:public
 
 ## 生成外部网页链接
 
-项目已包含 GitHub Pages 自动发布配置。GitHub Actions 只会把 `public/` 上传为网站，外部链接中不存在管理版入口。
+项目已包含 GitHub Pages 自动发布配置。GitHub Actions 只会把 `QV/public/` 上传为网站，外部链接中不存在管理版入口。
 
-首次发布：
-
-1. 在 GitHub 新建一个仓库，例如 `QV`；
-2. 将 **QV 文件夹内的内容**作为仓库根目录提交并推送，确保仓库根目录能看到 `admin/`、`public/`、`package.json` 和 `.github/`；
-3. 打开仓库 **Settings → Pages**，在 **Build and deployment** 中选择 **GitHub Actions**；
-4. 推送到 `main` 分支后，在仓库 **Actions** 页面等待 `Deploy QV public site` 完成。
-
-外部链接通常是：
+当前 GitHub 仓库是 `hostlove/query`，发布成功后的固定外部地址是：
 
 ```text
-https://你的GitHub用户名.github.io/仓库名/
+https://hostlove.github.io/query/
 ```
 
-例如用户名为 `liuming`、仓库名为 `QV`，链接就是 `https://liuming.github.io/QV/`。以后每次修改题库，只需在管理版点击“发布只读版”，再 `git commit` 和 `git push`；同一个外部链接会自动更新。
+### 第一次上线
+
+1. 打开 [query 仓库的 Pages 设置](https://github.com/hostlove/query/settings/pages)。
+2. 在 **Build and deployment → Source** 中选择 **GitHub Actions**。
+3. 在本机项目根目录执行：
+
+```powershell
+cd F:\bpp\bin\vscodebin\python\intrduction
+
+git add -A -- .github QV/.github QV/README.md
+git commit -m "修正 QV GitHub Pages 发布配置"
+git push origin main
+```
+
+4. 打开 [GitHub Actions](https://github.com/hostlove/query/actions)，等待 `Deploy QV public site` 任务变成绿色。
+5. 访问 `https://hostlove.github.io/query/` 查看公开只读题库。
+
+如果刚发布时页面暂时打不开，等待一两分钟后刷新。外部用户只能查看和练习，无法通过网页修改公开题库。
+
+### 后续更新题库
+
+先启动本机服务：
+
+```powershell
+cd F:\bpp\bin\vscodebin\python\intrduction\QV
+npm.cmd start
+```
+
+然后按下面的顺序操作：
+
+1. 打开管理版：`http://127.0.0.1:4173/admin/`。
+2. 新增、编辑、删除或导入问题。
+3. 点击管理版右上角的 **“发布只读版”**。
+4. 打开 `http://127.0.0.1:4173/public/`，检查公开版的题目和页面显示。
+5. 确认无误后，在项目根目录提交并推送：
+
+```powershell
+cd F:\bpp\bin\vscodebin\python\intrduction
+
+git add QV/admin/data/cards.js QV/public
+git commit -m "更新公开面试题库"
+git push origin main
+```
+
+推送后，GitHub Actions 会自动重新部署。以后始终使用同一个外部链接：
+
+```text
+https://hostlove.github.io/query/
+```
+
+如果只修改了管理版但没有点击 **“发布只读版”**，`QV/public/` 不会更新，外部网站也不会发生变化。
 
 即使仓库是公开的，其他人也没有你的仓库写权限。他们可以使用网站或复制代码，但不能修改你这个链接显示的题库。只有拥有仓库写权限的人推送后，GitHub Pages 才会更新。
 
@@ -133,10 +176,11 @@ QV/
 │   ├── sync-data.cjs         从 Markdown 生成管理版初始题库
 │   └── build-public.cjs      生成可发布的 public 目录
 ├── tests/                    核心逻辑与浏览器端到端测试
-├── .github/workflows/        GitHub Pages 自动发布
 ├── serve.cjs                 本机管理与预览服务
 └── package.json
 ```
+
+GitHub Pages 工作流位于仓库根目录的 `.github/workflows/pages.yml`，负责发布这里的 `QV/public/`。
 
 ## 验证
 

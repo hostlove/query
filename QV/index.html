@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174b3d">
+  <meta name="description" content="QV 个人面试题库：翻卡练习、口述计时、收藏复习与自由编辑。离线可用，数据由你掌握。">
+  <title>QV · 面试练习室</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script src="core.js" defer></script>
+  <script src="data/cards.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">跳到练习区</a>
+  <div id="sidebar-shade" class="sidebar-shade" hidden></div>
+  <aside class="sidebar" id="sidebar" aria-label="题库导航">
+    <a class="brand" href="./index.html" aria-label="QV 面试练习室首页"><span class="brand-mark">Q<span>V</span><i></i></span><span class="brand-name">面试练习室<small>QUESTION VAULT</small></span></a>
+    <div class="sidebar-label">我的学习空间</div>
+    <nav class="main-nav">
+      <button class="nav-item active" data-nav="study"><span data-icon="cards"></span><span>闪卡练习</span><span class="nav-count" id="nav-total">0</span></button>
+      <button class="nav-item" data-nav="library"><span data-icon="grid"></span><span>题库管理</span></button>
+      <button class="nav-item" data-nav="starred"><span data-icon="star"></span><span>我的收藏</span><span class="nav-count" id="nav-starred">0</span></button>
+      <button class="nav-item" data-nav="review"><span data-icon="repeat"></span><span>待复习</span><span class="nav-count" id="nav-review">0</span></button>
+    </nav>
+    <div class="sidebar-label topics-label">按主题练习 <span id="topic-total">07</span></div>
+    <nav id="category-nav" class="category-nav" aria-label="题目主题"></nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-tip"><span data-icon="spark"></span><p>理解，比背下来更重要。<small>试着用自己的项目举个例子。</small></p></div>
+      <button id="help-button" class="quiet-button"><span data-icon="keyboard"></span>使用指南与快捷键<span class="help-key">?</span></button>
+      <div class="local-label"><span class="online-dot"></span>个人题库 · 无需登录</div>
+    </div>
+  </aside>
+  <div class="main-shell">
+    <header class="topbar">
+      <div class="breadcrumb"><button id="menu-button" class="icon-button mobile-only" aria-label="打开导航" aria-expanded="false"><span data-icon="menu"></span></button><span class="breadcrumb-home">我的工作台</span><span class="slash">/</span><strong id="page-title">闪卡练习</strong></div>
+      <div class="top-actions">
+        <span id="save-status" class="save-status" role="status"><span class="online-dot"></span>已保存到本地</span>
+        <button id="theme-button" class="icon-button" aria-label="切换深色模式" title="切换深色模式"><span data-icon="moon"></span></button>
+        <span class="top-divider"></span>
+        <button id="import-button" class="button subtle"><span data-icon="upload"></span><span>导入</span></button>
+        <button id="export-button" class="button subtle"><span data-icon="download"></span><span>备份</span></button>
+        <button id="add-button" class="button primary"><span data-icon="plus"></span><span>新增问题</span></button>
+      </div>
+    </header>
+    <main id="workspace" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy"><div class="eyebrow"><span class="hero-dot"></span>AI / AGENT INTERVIEW</div><h1 id="hero-title">面试之前，<br class="mobile-only">再练一遍<span>。</span></h1><p>先回忆，再对照。每次一分钟，练出清晰表达。</p><div class="hero-foot"><span>把每一个「知道」变成「说得清楚」</span><span class="hero-arrow">↗</span></div></div>
+        <div class="hero-art" aria-hidden="true"><div class="orb orb-one"></div><div class="orb orb-two"></div><div class="art-card art-back"></div><div class="art-card art-front"><div class="art-top"><span>DAILY PRACTICE</span><span>✳</span></div><strong>60<span>s</span></strong><div class="art-bottom"><span>一个问题 · 一次进步</span><span>↗</span></div></div><span class="art-spark">✳</span></div>
+      </section>
+      <section id="stats" class="stats" aria-label="学习概览"></section>
+      <section class="practice-section" aria-label="面试题库">
+        <div class="section-heading"><div><h2 id="section-title">专注这一题</h2><span id="section-subtitle">从熟悉的概念，到自己的理解。</span></div><div class="section-controls"><button id="focus-button" class="button small subtle" aria-pressed="false" title="专注模式：隐藏顶部概览"><span data-icon="focus"></span><span>专注模式</span></button><div class="view-switch" role="group" aria-label="展示方式"><button id="study-view" class="active" aria-pressed="true"><span data-icon="cards"></span>闪卡</button><button id="library-view" aria-pressed="false"><span data-icon="list"></span>列表</button></div></div></div>
+        <div class="filter-panel">
+          <label class="search-box"><span data-icon="search"></span><input id="search" type="search" autocomplete="off" placeholder="搜索问题、答案或关键词…" aria-label="搜索题库"><kbd>/</kbd></label>
+          <div class="filter-bottom"><div class="status-filters" id="status-filters" role="group" aria-label="掌握程度"></div><div class="filter-actions"><span id="result-count"></span><button id="clear-filters" class="text-button" hidden>清空筛选</button><button id="shuffle-button" class="button small subtle" aria-pressed="false"><span data-icon="shuffle"></span><span>随机练习</span></button></div></div>
+        </div>
+        <div id="content"></div>
+      </section>
+      <footer class="workspace-footer"><span><span class="tiny-brand">QV</span> 为下一次从容表达做准备</span><span>数据保存在当前浏览器，记得定期备份。</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="editor-dialog" class="modal editor-modal" aria-labelledby="editor-title">
+    <form id="editor-form">
+      <div class="modal-heading"><div><div class="eyebrow muted">BUILD YOUR KNOWLEDGE</div><h2 id="editor-title">新增问题</h2></div><button type="button" class="icon-button" data-close="editor-dialog" aria-label="关闭编辑窗口"><span data-icon="close"></span></button></div>
+      <div class="modal-body">
+        <label class="field">问题 <span class="required">*</span><textarea id="edit-question" name="question" rows="2" maxlength="1000" placeholder="你想在下一次面试中答好什么问题？" required></textarea></label>
+        <div class="form-row"><label class="field">主题 <span class="required">*</span><input id="edit-category" name="category" list="category-options" maxlength="40" placeholder="选择或输入新主题" required><datalist id="category-options"></datalist></label><label class="field">标签<small>逗号分隔</small><input id="edit-tags" name="tags" maxlength="300" placeholder="LangGraph, Agent"></label></div>
+        <label class="field">参考回答 <span class="required">*</span><textarea id="edit-answer" name="answer" rows="7" maxlength="50000" placeholder="先说核心判断，再用自己的项目举例。建议控制在一分钟内。" required></textarea><small id="answer-estimate" class="field-hint">建议 120–220 字，支持简单 Markdown。</small></label>
+        <label class="field">备考备注与参考资料<textarea id="edit-notes" name="notes" rows="3" maxlength="50000" placeholder="补充追问、事实边界或链接，例如 [官方文档](https://...)。这些内容不需要口述。"></textarea></label>
+        <p id="editor-error" class="form-error" role="alert" hidden></p>
+      </div>
+      <div class="modal-footer"><button type="button" id="delete-button" class="button danger-text" hidden><span data-icon="trash"></span>删除问题</button><span class="spacer"></span><button type="button" class="button secondary" data-close="editor-dialog">取消</button><button class="button primary" type="submit"><span data-icon="check"></span>保存问题</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="import-dialog" class="modal" aria-labelledby="import-title">
+    <div class="modal-heading"><div><div class="eyebrow muted">GROW YOUR COLLECTION</div><h2 id="import-title">把新知识放进来</h2></div><button class="icon-button" data-close="import-dialog" aria-label="关闭导入窗口"><span data-icon="close"></span></button></div>
+    <div class="modal-body">
+      <label class="file-drop" id="file-drop"><span data-icon="upload"></span><strong>选择文件，或拖拽到这里</strong><small>支持 QV 备份 JSON、问答 Markdown · 最大 10 MB</small><input id="import-file" type="file" accept=".json,.md,.markdown,text/markdown,application/json" aria-label="选择导入文件"></label>
+      <label class="field paste-field">也可以直接粘贴 Markdown<textarea id="import-text" rows="5" placeholder="## Agent 与工具&#10;&#10;### 什么是 Agent？&#10;&#10;**回答：**在这里写下你的回答。"></textarea></label>
+      <div class="import-options"><label class="check-label"><input id="update-duplicates" type="checkbox">更新重复题内容，保留现有学习记录</label><label id="restore-option" class="check-label" hidden><input id="restore-backup" type="checkbox">完整恢复此备份，替换当前题库和学习记录</label></div>
+      <div id="import-preview" class="import-preview" aria-live="polite" hidden></div>
+      <p id="import-error" class="form-error" role="alert" hidden></p>
+    </div>
+    <div class="modal-footer"><span class="footer-tip">默认合并导入，相同问题自动跳过。</span><button id="preview-import" class="button secondary">预览</button><button id="apply-import" class="button primary" disabled>确认导入</button></div>
+  </dialog>
+
+  <dialog id="export-dialog" class="modal compact-modal" aria-labelledby="export-title">
+    <div class="modal-heading"><div><div class="eyebrow muted">TAKE YOUR KNOWLEDGE WITH YOU</div><h2 id="export-title">备份与导出</h2></div><button class="icon-button" data-close="export-dialog" aria-label="关闭备份窗口"><span data-icon="close"></span></button></div>
+    <div class="modal-body export-options"><button id="export-json" class="export-option"><span class="export-icon" data-icon="archive"></span><span><strong>完整备份 <em>推荐</em></strong><small>JSON · 所有题目、收藏、掌握度和个人笔记</small></span><span data-icon="arrow-right"></span></button><button id="export-markdown" class="export-option"><span class="export-icon" data-icon="file"></span><span><strong>导出可读题库</strong><small>Markdown · 所有问题、回答和备考备注</small></span><span data-icon="arrow-right"></span></button><p class="callout">换浏览器或清理数据前，先下载一份完整备份。之后可通过「导入」恢复。</p></div>
+  </dialog>
+
+  <dialog id="help-dialog" class="modal compact-modal" aria-labelledby="help-title">
+    <div class="modal-heading"><div><div class="eyebrow muted">A SMALL GUIDE</div><h2 id="help-title">让练习更顺手</h2></div><button class="icon-button" data-close="help-dialog" aria-label="关闭使用指南"><span data-icon="close"></span></button></div>
+    <div class="modal-body"><div class="how-to"><span>01</span><p><strong>先想，再看</strong>用 60 秒计时组织回答，准备好后展开参考答案。</p><span>02</span><p><strong>诚实标记掌握程度</strong>难题放入待复习，重要问题收藏，心得写进个人笔记。</p><span>03</span><p><strong>让题库持续生长</strong>新增或编辑问题，也可以导入 Markdown 批量补充。</p></div><div class="shortcut-grid"><span>展开 / 收起答案</span><kbd>Space</kbd><span>上一题 / 下一题</span><span><kbd>←</kbd> <kbd>→</kbd></span><span>收藏 / 取消收藏</span><kbd>S</kbd><span>标记掌握程度</span><span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></span><span>开始 / 暂停计时</span><kbd>T</kbd><span>搜索 / 新增 / 编辑</span><span><kbd>/</kbd> <kbd>N</kbd> <kbd>E</kbd></span></div><p class="callout">输入文字或打开弹窗时不会触发练习快捷键。学习记录仅保存在当前浏览器；网页编辑不会直接修改磁盘上的 query.md，请使用导出保存文件。</p></div>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="modal mini-modal" aria-labelledby="confirm-title"><div class="modal-heading"><h2 id="confirm-title">确认操作</h2></div><div class="modal-body"><p id="confirm-message"></p></div><div class="modal-footer"><button class="button secondary" data-close="confirm-dialog">取消</button><button id="confirm-action" class="button primary">确认</button></div></dialog>
+  <noscript><div class="noscript">请启用 JavaScript 以使用题库。原始问答也可在 data/query.md 中阅读。</div></noscript>
+</body>
+</html>

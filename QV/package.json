@@ -1,0 +1,11 @@
+{
+  "name": "qv-interview-cards",
+  "version": "1.0.0",
+  "private": true,
+  "description": "离线可用的个人 AI 面试题卡与题库管理工具",
+  "scripts": {
+    "start": "node serve.cjs",
+    "sync": "node scripts/sync-data.cjs",
+    "test": "node --test tests/core.test.cjs"
+  }
+}

@@ -24,6 +24,9 @@
 body{font-family:"Microsoft YaHei UI","Microsoft YaHei","PingFang SC","Inter","Segoe UI",sans-serif}
 .section-controls{display:flex;align-items:center;gap:12px}
 .focus-mode .hero,.focus-mode .stats{display:none}
+.readonly-badge{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--soft);color:var(--muted);font-size:10px;white-space:nowrap}
+@media(max-width:760px){.top-actions #import-button span:last-child,.top-actions #export-button span:last-child,.top-actions #publish-button span:last-child,.top-actions #add-button span:last-child{display:none}.top-actions #import-button,.top-actions #export-button,.top-actions #publish-button,.top-actions #add-button{padding-inline:8px}.readonly-badge{padding-inline:8px}}
+@media(max-width:420px){.readonly-badge{font-size:0;gap:0}.readonly-badge .online-dot{width:7px;height:7px}}
 #focus-button[aria-pressed="true"]{color:var(--green);background:var(--green-light)}
 @media(min-width:761px){.mobile-only{display:none!important}}
 @media(max-width:1200px){.section-controls{gap:6px}}

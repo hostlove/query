@@ -29,6 +29,13 @@ async function main() {
   assert.equal(await page.locator('#current-answer').count(), 0);
   await screenshot(page, 'desktop-study'); passed('Initial 67-card deck and hidden answer');
 
+  await page.locator('#publish-button').click();
+  await page.locator('#toast').filter({ hasText: '已更新 public 只读版' }).waitFor();
+  const publishedContext = { window: {} };
+  require('node:vm').runInNewContext(fs.readFileSync(path.join(root, 'public', 'data', 'cards.js'), 'utf8'), publishedContext);
+  assert.equal(publishedContext.window.QV_SEED.cards.length, 67);
+  passed('Admin publish action rebuilds the 67-card public site');
+
   await page.locator('#timer-toggle').click(); await wait(1100);
   assert.notEqual(await page.locator('#timer-display').textContent(), '01:00');
   await page.locator('#timer-toggle').click(); const stopped = await page.locator('#timer-display').textContent();
@@ -138,6 +145,31 @@ async function main() {
   await page.locator('#focus-button').click(); assert.equal(await page.locator('.hero').isVisible(), true);
   passed('Focus mode hides overview and persists');
 
+  const publicContext = await browser.newContext({ viewport: { width: 1440, height: 1050 }, locale: 'zh-CN' });
+  const publicPage = await publicContext.newPage(); publicPage.on('pageerror', err => errors.push(err.message));
+  await publicPage.goto(`${url}/public/`); await publicPage.locator('#current-question').waitFor();
+  assert.equal(await publicPage.locator('#nav-total').textContent(), '67');
+  for (const selector of ['#add-button', '#edit-question', '#delete-button', '#import-button', '#export-button', '#publish-button', '[data-action="edit"]']) {
+    assert.equal(await publicPage.locator(selector).count(), 0);
+  }
+  const publicFirst = await publicPage.locator('#current-question').textContent();
+  await publicPage.locator('.flashcard [data-action="star"]').click();
+  await publicPage.locator('#reveal-button').click();
+  await publicPage.locator('#personal-note').fill('公开版个人练习笔记');
+  await publicPage.locator('#current-question').click(); await wait(500);
+  await publicPage.locator('[data-action="rate"][data-value="review"]').click();
+  await publicPage.reload(); await publicPage.locator('[data-nav="starred"]').click();
+  assert.equal(await publicPage.locator('#current-question').textContent(), publicFirst);
+  await publicPage.locator('#reveal-button').click();
+  assert.equal(await publicPage.locator('#personal-note').inputValue(), '公开版个人练习笔记');
+  assert.match(await publicPage.locator('.flashcard .status-badge').textContent(), /待复习/);
+  const publicStorage = await publicPage.evaluate(() => JSON.parse(localStorage.getItem('qv.public.practice.v1')));
+  assert.equal(Object.hasOwn(publicStorage, 'cards'), false);
+  assert.ok(Object.hasOwn(publicStorage, 'progress'));
+  await screenshot(publicPage, 'public-readonly');
+  await publicContext.close();
+  passed('Public site is read-only while visitor practice data persists locally');
+
   const mobileContext = await browser.newContext({ locale: 'zh-CN' });
   const mobile = await mobileContext.newPage(); mobile.on('pageerror', err => errors.push(err.message));
   await mobile.setViewportSize({ width: 390, height: 844 }); await mobile.goto(url);
@@ -152,11 +184,16 @@ async function main() {
 
   const offline = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const filePage = await offline.newPage(); filePage.on('pageerror', err => errors.push(err.message));
-  await offline.setOffline(true); await filePage.goto(pathToFileURL(path.join(root, 'index.html')).href);
+  await offline.setOffline(true); await filePage.goto(pathToFileURL(path.join(root, 'admin', 'index.html')).href);
   await filePage.locator('#current-question').waitFor();
   assert.equal(await filePage.locator('#nav-total').textContent(), '67');
   await filePage.locator('#reveal-button').click(); assert.ok((await filePage.locator('.answer-text').textContent()).length > 100);
-  passed('Double-click file URL works completely offline');
+  const publicFilePage = await offline.newPage(); publicFilePage.on('pageerror', err => errors.push(err.message));
+  await publicFilePage.goto(pathToFileURL(path.join(root, 'public', 'index.html')).href);
+  await publicFilePage.locator('#current-question').waitFor();
+  assert.equal(await publicFilePage.locator('#nav-total').textContent(), '67');
+  assert.equal(await publicFilePage.locator('#add-button').count(), 0);
+  passed('Admin and public file URLs work completely offline');
   assert.deepEqual(errors, []); passed('No browser JavaScript errors');
   fs.writeFileSync(path.join(qa, 'results.json'), JSON.stringify({ passed: results, errors }, null, 2));
 }

@@ -3,10 +3,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const C = require('../core.js');
-const source = fs.readFileSync(path.join(__dirname, '../data/query.md'), 'utf8');
+const C = require('../admin/core.js');
+const source = fs.readFileSync(path.join(__dirname, '../admin/data/query.md'), 'utf8');
 const seedContext = { window: {} };
-vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../data/cards.js'), 'utf8'), seedContext);
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../admin/data/cards.js'), 'utf8'), seedContext);
 const seed = JSON.parse(JSON.stringify(seedContext.window.QV_SEED.cards));
 
 test('源 Markdown 的每道题都保留原答案与备注，初始数据一致', () => {
@@ -84,4 +84,19 @@ test('随机练习不修改源数组，不丢失或重复题目', () => {
   assert.deepEqual(seed.map(c => c.id), before);
   assert.deepEqual(shuffled.map(c => c.id).sort(), [...before].sort());
   assert.notDeepEqual(shuffled.map(c => c.id), before);
+});
+
+test('公开版题库与管理版发布数据一致，且不包含题库管理入口', () => {
+  const publicContext = { window: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../public/data/cards.js'), 'utf8'), publicContext);
+  assert.deepEqual(JSON.parse(JSON.stringify(publicContext.window.QV_SEED.cards)), seed);
+
+  const html = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+  const app = fs.readFileSync(path.join(__dirname, '../public/app.js'), 'utf8');
+  for (const id of ['add-button', 'edit-question', 'delete-button', 'import-button', 'export-button', 'publish-button']) {
+    assert.equal(html.includes(`id="${id}"`), false, `公开版不应包含 ${id}`);
+  }
+  assert.equal(app.includes('/api/publish'), false);
+  assert.equal(app.includes('function editCard'), false);
+  assert.match(app, /qv\.public\.practice\.v1/);
 });

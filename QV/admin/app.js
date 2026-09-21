@@ -3,6 +3,7 @@
   const C = window.QVCore, $ = id => document.getElementById(id);
   const KEY = 'qv.workspace.v1';
   const paths = {
+    publish: '<path d="M12 16V3m-4 4 4-4 4 4M5 12H3v9h18v-9h-2"/><path d="M8 21v-4h8v4"/>',
     focus: '<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="3"/>',
     cards: '<rect x="6" y="5" width="14" height="16" rx="2"/><path d="M3 16V4a2 2 0 0 1 2-2h11M10 10h6M10 14h4"/>',
     grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -271,6 +272,27 @@
     else download(C.exportMarkdown(db.cards), `QV-questions-${stamp}.md`, 'text/markdown;charset=utf-8');
     toast('已生成下载文件，请妥善保存。'); $('export-dialog').close();
   }
+  async function publishPublic() {
+    flushNote();
+    const button = $('publish-button'), original = button.innerHTML;
+    button.disabled = true; button.textContent = '正在发布…';
+    try {
+      const response = await fetch('/api/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: db.cards })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error(result.message || '本机发布服务没有响应。');
+      toast(`已更新 public 只读版，共 ${result.count} 道题。下一步提交并推送 GitHub。`, 6500);
+    } catch (error) {
+      toast(location.protocol === 'file:'
+        ? '发布需要本机服务：在 QV 目录运行 npm.cmd start，再访问 /admin/。'
+        : `发布失败：${error.message}`, 7500);
+    } finally {
+      button.disabled = false; button.innerHTML = original;
+    }
+  }
   function closeSidebar() { $('sidebar').classList.remove('open'); $('sidebar-shade').hidden = true; $('menu-button').setAttribute('aria-expanded', 'false'); }
 
   document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = icon(el.dataset.icon); });
@@ -308,6 +330,7 @@
   $('help-button').onclick = () => showDialog('help-dialog');
   $('import-button').onclick = openImport;
   $('export-button').onclick = () => showDialog('export-dialog');
+  $('publish-button').onclick = publishPublic;
   $('export-json').onclick = () => exportData('json'); $('export-markdown').onclick = () => exportData('md');
   $('editor-form').onsubmit = saveEditor; $('delete-button').onclick = deleteCard;
   $('edit-answer').oninput = estimateAnswer;
